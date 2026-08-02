@@ -230,12 +230,12 @@ export function autoPartitionTilesIntoMelds(tiles: Tile[], okeyRef: Tile): Tile[
   for (const color in byColor) {
     let colorPool = [...byColor[color]];
 
-    while (colorPool.length >= 3) {
+    while (colorPool.length + okeyTiles.length >= 3 && colorPool.length >= 1) {
       const sortedPool = [...colorPool].sort((a, b) => getEffectiveTile(a, okeyRef).number - getEffectiveTile(b, okeyRef).number);
       let bestRun: Tile[] = [];
 
       for (let startIdx = 0; startIdx < sortedPool.length; startIdx++) {
-        const candidateRun: Tile[] = [sortedPool[startIdx]];
+        let candidateRun: Tile[] = [sortedPool[startIdx]];
         let currentNum = getEffectiveTile(sortedPool[startIdx], okeyRef).number;
 
         for (let nextIdx = startIdx + 1; nextIdx < sortedPool.length; nextIdx++) {
@@ -258,6 +258,16 @@ export function autoPartitionTilesIntoMelds(tiles: Tile[], okeyRef: Tile): Tile[
           const ace = sortedPool.find(t => getEffectiveTile(t, okeyRef).number === 1 && !candidateRun.some(c => c.id === t.id));
           if (ace) {
             candidateRun.push(ace);
+          }
+        }
+
+        // Try completing 2-tile run with available Okey tiles
+        if (candidateRun.length < 3 && okeyTiles.length > 0) {
+          const okeyCandidate = okeyTiles[okeyTiles.length - 1];
+          if (isValidRun([...candidateRun, okeyCandidate], okeyRef).valid) {
+            candidateRun = [...candidateRun, okeyTiles.pop()!];
+          } else if (isValidRun([okeyCandidate, ...candidateRun], okeyRef).valid) {
+            candidateRun = [okeyTiles.pop()!, ...candidateRun];
           }
         }
 

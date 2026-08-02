@@ -187,6 +187,7 @@ export default function Home() {
         <GameTable
           gameState={gameState}
           currentSocketId={socket.id || ''}
+          chatMessages={chatMessages}
           onDrawTile={handleDrawTile}
           onDiscardTile={handleDiscardTile}
           onOpenMelds={handleOpenMelds}
@@ -194,6 +195,7 @@ export default function Home() {
           onReturnDiscard={handleReturnDiscard}
           onClaimProcessable={handleClaimProcessable}
           onAddTileToMeld={handleAddTileToMeld}
+          onSendMessage={handleSendMessage}
           onRestartMatch={handleRestartMatch}
           onLeaveRoom={handleLeaveRoom}
         />

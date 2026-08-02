@@ -1,18 +1,18 @@
-'use client';
-
 import React, { useState } from 'react';
-import { GameState, Player, Tile, Meld } from '../../types/okey';
+import { GameState, Player, Tile, Meld, ChatMessage } from '../../types/okey';
 import CenterBoard from './CenterBoard';
 import TileRack from './TileRack';
 import OpponentRack from './OpponentRack';
 import RoundResultModal from './RoundResultModal';
 import MatchHistoryModal from './MatchHistoryModal';
+import ChatBox from '../ChatBox';
 import { soundManager } from '../../lib/sound';
-import { Volume2, VolumeX, Maximize2, History, ArrowLeft } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, History, ArrowLeft, MessageSquare, X } from 'lucide-react';
 
 interface GameTableProps {
   gameState: GameState;
   currentSocketId: string;
+  chatMessages: ChatMessage[];
   onDrawTile: (source: 'deck' | 'discard') => void;
   onDiscardTile: (tileId: string) => void;
   onOpenMelds: (melds: Tile[][]) => void;
@@ -20,6 +20,7 @@ interface GameTableProps {
   onReturnDiscard: () => void;
   onClaimProcessable: () => void;
   onAddTileToMeld: (tileId: string, meldId: string) => void;
+  onSendMessage: (text: string) => void;
   onRestartMatch: () => void;
   onLeaveRoom: () => void;
 }
@@ -27,6 +28,7 @@ interface GameTableProps {
 export default function GameTable({
   gameState,
   currentSocketId,
+  chatMessages,
   onDrawTile,
   onDiscardTile,
   onOpenMelds,
@@ -34,11 +36,14 @@ export default function GameTable({
   onReturnDiscard,
   onClaimProcessable,
   onAddTileToMeld,
+  onSendMessage,
   onRestartMatch,
   onLeaveRoom,
 }: GameTableProps) {
   const [isMuted, setIsMuted] = useState(soundManager.isMuted);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
 
   const selfPlayer = gameState.players.find(p => p.id === currentSocketId);
   const isHost = gameState.hostId === currentSocketId;
@@ -87,7 +92,16 @@ export default function GameTable({
   // Can draw from left opponent's discard pile if it's my turn and I haven't drawn
   const canDrawFromLeftDiscard = isMyTurn && !hasDrawn && leftOpponent !== undefined && getDiscardPileForSeat(leftOpponent.seatIndex).length > 0;
 
-  const canProcessTileOnTable = isMyTurn && hasDrawn && (selfPlayer?.hasOpened || false);
+  // Can process tile on table if my turn, I've drawn, I have opened my hand, and 1 tile is selected in rack
+  const canProcessTileOnTable = isMyTurn && hasDrawn && (selfPlayer?.hasOpened || false) && !!selectedTileId;
+
+  const handleProcessTileToMeld = (meldId: string) => {
+    if (selectedTileId) {
+      soundManager.playButtonClick();
+      onAddTileToMeld(selectedTileId, meldId);
+      setSelectedTileId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-between felt-background relative overflow-hidden select-none">
@@ -123,6 +137,19 @@ export default function GameTable({
         {/* Header Tools Controls */}
         <div className="flex items-center gap-2">
           <button
+            onClick={() => { soundManager.playButtonClick(); setIsChatOpen(!isChatOpen); }}
+            className={`p-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all relative ${
+              isChatOpen ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+            }`}
+            title="Sohbet / Bildirimler"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Sohbet</span>
+            {chatMessages.length > 0 && !isChatOpen && (
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping absolute -top-0.5 -right-0.5" />
+            )}
+          </button>
+          <button
             onClick={() => { soundManager.playButtonClick(); setIsHistoryOpen(true); }}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold flex items-center gap-1"
             title="Geçmiş"
@@ -146,6 +173,26 @@ export default function GameTable({
         </div>
       </header>
 
+      {/* Floating Chat Box Overlay */}
+      {isChatOpen && (
+        <div className="fixed bottom-20 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] h-96 glass-panel rounded-2xl shadow-2xl border border-white/20 overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4">
+          <div className="p-3 bg-slate-950/90 border-b border-white/10 flex items-center justify-between">
+            <span className="font-extrabold text-amber-400 text-xs flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5" /> Oyun İçi Sohbet & Ceza Bildirimleri
+            </span>
+            <button
+              onClick={() => setIsChatOpen(false)}
+              className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden p-2">
+            <ChatBox messages={chatMessages} onSendMessage={onSendMessage} />
+          </div>
+        </div>
+      )}
+
       {/* Main Felt Table Field */}
       <main className="flex-1 relative flex flex-col justify-between p-4 max-w-6xl mx-auto w-full">
         {/* Top Opponent Slot */}
@@ -160,6 +207,7 @@ export default function GameTable({
               canDrawDiscard={false}
               canProcessTile={canProcessTileOnTable}
               onDrawDiscard={() => {}}
+              onAddTileToMeld={handleProcessTileToMeld}
             />
           )}
         </div>
@@ -178,6 +226,7 @@ export default function GameTable({
                 canDrawDiscard={canDrawFromLeftDiscard}
                 canProcessTile={canProcessTileOnTable}
                 onDrawDiscard={() => onDrawTile('discard')}
+                onAddTileToMeld={handleProcessTileToMeld}
               />
             )}
           </div>
@@ -209,6 +258,7 @@ export default function GameTable({
                 canDrawDiscard={false}
                 canProcessTile={canProcessTileOnTable}
                 onDrawDiscard={() => {}}
+                onAddTileToMeld={handleProcessTileToMeld}
               />
             )}
           </div>
@@ -232,6 +282,7 @@ export default function GameTable({
           onCollectMelds={onCollectMelds}
           onReturnDiscard={onReturnDiscard}
           onAddTileToMeld={onAddTileToMeld}
+          onSelectTileId={(tileId) => setSelectedTileId(tileId)}
         />
       )}
 

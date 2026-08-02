@@ -25,6 +25,7 @@ interface TileRackProps {
   onCollectMelds?: () => void;
   onReturnDiscard?: () => void;
   onAddTileToMeld?: (tileId: string, meldId: string) => void;
+  onSelectTileId?: (tileId: string | null) => void;
 }
 
 export default function TileRack({
@@ -42,12 +43,25 @@ export default function TileRack({
   onCollectMelds,
   onReturnDiscard,
   onAddTileToMeld,
+  onSelectTileId,
 }: TileRackProps) {
   // 30 fixed rack slots (2 rows of 15)
   const [rackSlots, setRackSlots] = useState<(Tile | null)[]>(new Array(30).fill(null));
   // Multi-selection array of selected slot indices
   const [selectedSlotIndices, setSelectedSlotIndices] = useState<number[]>([]);
   const [draggedSlotIndex, setDraggedSlotIndex] = useState<number | null>(null);
+
+  // Notify parent of selected tile ID
+  useEffect(() => {
+    if (onSelectTileId) {
+      if (selectedSlotIndices.length === 1) {
+        const selectedTile = rackSlots[selectedSlotIndices[0]];
+        onSelectTileId(selectedTile ? selectedTile.id : null);
+      } else {
+        onSelectTileId(null);
+      }
+    }
+  }, [selectedSlotIndices, rackSlots, onSelectTileId]);
 
   // Synchronize server hand into 30 slots WITHOUT resetting user's custom arrangement
   useEffect(() => {
