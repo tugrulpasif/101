@@ -175,12 +175,18 @@ export function validateSingleMeld(tiles: Tile[], okeyRef: Tile): { valid: boole
 export function autoPartitionTilesIntoMelds(tiles: Tile[], okeyRef: Tile): Tile[][] {
   const partitioned: Tile[][] = [];
   const remaining = [...tiles];
-  const okeyTiles = remaining.filter(t => t.isOkey);
+
+  // Extract Okey tiles into a separate pool and REMOVE them from remaining
+  const okeyTiles: Tile[] = [];
+  for (let i = remaining.length - 1; i >= 0; i--) {
+    if (remaining[i].isOkey) {
+      okeyTiles.push(remaining.splice(i, 1)[0]);
+    }
+  }
 
   // 1. Extract Sets (Takımlar: 3 or 4 same-number tiles with distinct colors)
   const byNumber: { [num: number]: Tile[] } = {};
   remaining.forEach(t => {
-    if (t.isOkey) return;
     const eff = getEffectiveTile(t, okeyRef);
     if (!byNumber[eff.number]) byNumber[eff.number] = [];
     byNumber[eff.number].push(t);
