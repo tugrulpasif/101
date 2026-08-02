@@ -4,7 +4,7 @@ services:
     name: 101-okey-server
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build:server
+    buildCommand: npm install --include=dev && npm run build:server
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -17,7 +17,7 @@ services:
     name: 101-okey-frontend
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build:next
+    buildCommand: npm install --include=dev && npm run build:next
     startCommand: npm run start:next
     envVars:
       - key: NODE_ENV
