@@ -1,0 +1,26 @@
+services:
+  # ── Backend: Express + Socket.IO ──────────────────────────────────────
+  - type: web
+    name: 101-okey-server
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:server
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  # ── Frontend: Next.js ─────────────────────────────────────────────────
+  - type: web
+    name: 101-okey-frontend
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:next
+    startCommand: npm run start:next
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SOCKET_URL
+        sync: false   # Render dashboard'dan manuel gireceksin (backend URL)

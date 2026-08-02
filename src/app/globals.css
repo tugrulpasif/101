@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased overflow-x-hidden select-none min-h-screen;
+  }
+}
+
+.felt-background {
+  background-color: #114227;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(27, 94, 56, 0.8) 0%, rgba(10, 35, 22, 0.95) 100%),
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 100% 100%, 20px 20px;
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.okey-tile {
+  background: linear-gradient(145deg, #fefefe, #e2e8f0);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(148, 163, 184, 0.5);
+  border-radius: 0.375rem;
+}
+
+.okey-tile-selected {
+  outline: 3px solid #eab308;
+  transform: translateY(-6px);
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.8), 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(234, 179, 8, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 179, 8, 0.7);
+}
